@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import { logger } from '../../infrastructure/telemetry/logger';
 
 export interface ErrorResponse {
@@ -28,7 +28,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const correlationId = (request.headers['x-correlation-id'] as string) || uuidv4();
+    const correlationId =
+      (request.headers['x-correlation-id'] as string) || randomUUID();
     const timestamp = new Date().toISOString();
     const path = request.url;
 

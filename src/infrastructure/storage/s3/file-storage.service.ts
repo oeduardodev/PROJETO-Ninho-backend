@@ -1,7 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Service } from './s3.service';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface UploadIntent {
   key: string;
@@ -33,7 +32,7 @@ export class FileStorageService {
     prefix: string,
     originalName: string,
     mimeType: string,
-    purpose: 'avatar' | 'attachment' | 'report' | 'profile' = 'attachment',
+    _purpose: 'avatar' | 'attachment' | 'report' | 'profile' = 'attachment',
   ): Promise<UploadIntent> {
     const allowedMimeTypes = this.configService.get<string[]>('storage.upload.allowedMimeTypes')!;
     const maxSize = this.configService.get<number>('storage.upload.maxSize')!;

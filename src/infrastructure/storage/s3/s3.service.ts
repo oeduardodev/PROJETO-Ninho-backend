@@ -12,7 +12,7 @@ import {
   AbortMultipartUploadCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class S3Service implements OnModuleInit {
@@ -177,7 +177,7 @@ export class S3Service implements OnModuleInit {
 
   generateKey(prefix: string, originalName: string): string {
     const ext = originalName.split('.').pop()?.toLowerCase() || '';
-    const uniqueId = uuidv4();
+    const uniqueId = randomUUID();
     const timestamp = Date.now();
     return `${prefix}/${timestamp}-${uniqueId}.${ext}`;
   }

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 export interface ApiResponse<T> {
   data: T;
@@ -26,7 +26,7 @@ export class TransformInterceptor<T>
   ): Observable<ApiResponse<T>> {
     const request = context.switchToHttp().getRequest();
     const correlationId =
-      (request.headers['x-correlation-id'] as string) || uuidv4();
+      (request.headers['x-correlation-id'] as string) || randomUUID();
 
     return next.handle().pipe(
       map((data) => ({
