@@ -3,6 +3,13 @@ import { z } from "zod";
 const LOCAL_ACCESS_SECRET = "local-access-secret-change-before-production";
 const LOCAL_REFRESH_SECRET = "local-refresh-secret-change-before-production";
 
+function isInsecureSecret(value: string): boolean {
+  return (
+    value.includes("change-before-production") ||
+    value.includes("change-in-production")
+  );
+}
+
 export const envSchema = z
   .object({
     APP_ENV: z
@@ -11,7 +18,9 @@ export const envSchema = z
     APP_PORT: z.coerce.number().int().positive().default(3000),
     API_PREFIX: z.string().default("/api"),
     API_VERSION: z.string().default("v1"),
-    CORS_ORIGIN: z.string().default("http://localhost:3000"),
+    CORS_ORIGIN: z
+      .string()
+      .default("http://localhost:8081,http://localhost:19006"),
 
     DATABASE_URL: z
       .string()
@@ -62,7 +71,7 @@ export const envSchema = z
       return;
     }
 
-    if (config.JWT_ACCESS_SECRET === LOCAL_ACCESS_SECRET) {
+    if (isInsecureSecret(config.JWT_ACCESS_SECRET)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["JWT_ACCESS_SECRET"],
@@ -70,7 +79,7 @@ export const envSchema = z
       });
     }
 
-    if (config.JWT_REFRESH_SECRET === LOCAL_REFRESH_SECRET) {
+    if (isInsecureSecret(config.JWT_REFRESH_SECRET)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["JWT_REFRESH_SECRET"],

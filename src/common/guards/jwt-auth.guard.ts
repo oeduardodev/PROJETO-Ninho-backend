@@ -9,6 +9,10 @@ import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
+import { AccessTokenPayload } from "../../modules/auth/auth.types";
+
+const JWT_ISSUER = "ninho-api";
+const JWT_AUDIENCE = "ninho-app";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -36,9 +40,20 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>("auth.jwt.accessSecret"),
-      });
+      const payload = await this.jwtService.verifyAsync<AccessTokenPayload>(
+        token,
+        {
+          secret: this.configService.getOrThrow<string>(
+            "auth.jwt.accessSecret",
+          ),
+          issuer: JWT_ISSUER,
+          audience: JWT_AUDIENCE,
+        },
+      );
+
+      if (payload.type !== "access" || !payload.sub) {
+        throw new Error("Unexpected JWT payload");
+      }
 
       request.user = payload;
     } catch {

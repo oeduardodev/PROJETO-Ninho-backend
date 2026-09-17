@@ -6,5 +6,6 @@ export default registerAs("app", () => ({
   port: Number(process.env.APP_PORT || 3000),
   apiPrefix: process.env.API_PREFIX || "/api",
   apiVersion: process.env.API_VERSION || "v1",
-  corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  corsOrigin:
+    process.env.CORS_ORIGIN || "http://localhost:8081,http://localhost:19006",
 }));
