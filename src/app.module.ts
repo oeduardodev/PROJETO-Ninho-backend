@@ -14,6 +14,7 @@ import { TelemetryModule } from "./infrastructure/telemetry/telemetry.module";
 import { DatabaseModule } from "./infrastructure/database/prisma/database.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { AuthModule } from "./modules/auth/auth.module";
+import { CommunityModule } from "./modules/community/community.module";
 import { AppController } from "./app.controller";
 
 @Module({
@@ -35,6 +36,7 @@ import { AppController } from "./app.controller";
     DatabaseModule,
     TelemetryModule,
     AuthModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [

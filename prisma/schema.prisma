@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  USER
-  PROFESSIONAL
-  MODERATOR
-  ADMIN
-}
-
 model User {
   id               String    @id @default(uuid()) @db.Uuid
   email            String    @unique
@@ -25,6 +18,60 @@ model User {
   lastLoginAt      DateTime? @map("last_login_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
+  communityName    String?   @db.VarChar(60) @map("community_name")
+  communityHandle  String?   @unique @db.VarChar(30) @map("community_handle")
+  avatarEmoji      String?   @db.VarChar(16) @map("avatar_emoji")
+  avatarBg         String?   @db.VarChar(7) @map("avatar_bg")
+
+  posts            CommunityPost[]
+  comments         CommunityComment[]
+  welcomes         CommunityWelcome[]
 
   @@map("users")
+}
+
+model CommunityPost {
+  id        String   @id @default(uuid()) @db.Uuid
+  authorId  String   @db.Uuid @map("author_id")
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tag       String   @default("Desabafo") @db.VarChar(32)
+  text      String   @db.VarChar(2000)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  comments  CommunityComment[]
+  welcomes  CommunityWelcome[]
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@map("community_posts")
+}
+
+model CommunityComment {
+  id        String        @id @default(uuid()) @db.Uuid
+  postId    String        @db.Uuid @map("post_id")
+  authorId  String        @db.Uuid @map("author_id")
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  text      String        @db.VarChar(1000)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([postId, createdAt, id])
+  @@map("community_comments")
+}
+
+model CommunityWelcome {
+  postId    String        @db.Uuid @map("post_id")
+  userId    String        @db.Uuid @map("user_id")
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@id([postId, userId])
+  @@map("community_welcomes")
+}
+
+enum UserRole {
+  USER
+  PROFESSIONAL
+  MODERATOR
+  ADMIN
 }
