@@ -1,6 +1,6 @@
 # Ninho Backend
 
-API de autenticação e comunidade do Ninho construída com NestJS, Prisma e PostgreSQL.
+API de autenticação, comunidade e conversas do Ninho construída com NestJS, Prisma e PostgreSQL.
 
 ## Pré-requisitos
 
@@ -59,10 +59,35 @@ Cada publicação contém `author` (`name`, `handle`, `avatarEmoji`, `avatarBg`)
 contêm `author`, `text` e `createdAt`. O apelido inicial é gerado a partir do
 identificador da conta; e-mail e telefone não aparecem no feed.
 
-O frontend atual de Comunidade ainda usa `MOCK_POSTS` e `INITIAL_COMMENTS`.
-Para exibir os dados reais, ele precisa chamar essas rotas com o token da sessão.
+O frontend da Comunidade usa essas rotas com o token da sessão.
 
-## Verificação
+## Conversas
+
+Todas as rotas exigem `Authorization: Bearer <accessToken>` e ficam em
+`/api/v1/conversations`. As mensagens são privadas para os dois participantes.
+O contato precisa ser uma conta ativa de comunidade ou profissional.
+
+| Método | Rota | Finalidade |
+| --- | --- | --- |
+| GET | `/contacts?search=...` | Listar pessoas disponíveis, sem expor e-mail ou telefone |
+| GET | `/?limit=30&cursor=...` | Listar minhas conversas com última mensagem e não lidas |
+| POST | `/` | Abrir ou criar uma conversa com `recipientId` |
+| GET | `/:conversationId` | Consultar uma conversa |
+| GET | `/:conversationId/messages?limit=30&cursor=...` | Ler histórico paginado e marcar mensagens recebidas como lidas |
+| POST | `/:conversationId/messages` | Enviar `text` de até 2.000 caracteres |
+
+As listagens paginadas retornam `items` e `nextCursor`. O frontend atualiza as
+conversas periodicamente enquanto a tela está aberta. Presença online e anexos
+ainda não fazem parte desta API.
+
+## Dados de demonstração
+
+Para preencher o feed local com quatro perfis fictícios, duas publicações por perfil,
+comentários e acolhimentos entre eles, execute `npm run prisma:seed` no diretório
+`backend`. O comando só aceita `APP_ENV=local` e um banco em `localhost` ou
+`127.0.0.1`; pode ser repetido sem duplicar os dados de demonstração.
+
+## Verificação técnica
 
 ```powershell
 npm run prisma:validate

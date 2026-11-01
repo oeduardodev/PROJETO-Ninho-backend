@@ -28,6 +28,10 @@ const user: User = {
   lastLoginAt: null,
   createdAt: new Date("2026-09-08T12:00:00.000Z"),
   updatedAt: new Date("2026-09-08T12:00:00.000Z"),
+  communityName: null,
+  communityHandle: null,
+  avatarEmoji: null,
+  avatarBg: null,
 };
 
 describe("AuthService", () => {

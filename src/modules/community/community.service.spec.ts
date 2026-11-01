@@ -57,7 +57,7 @@ describe("CommunityService", () => {
       welcomeCount: 3,
       commentCount: 2,
       welcomedByMe: true,
-      author: { handle: "@pessoa_8d1e67d0" },
+      author: { name: "Ana Silva", handle: "@ana_silva_50112", avatarEmoji: "" },
     });
     expect(JSON.stringify(page)).not.toContain("private@example.com");
     expect(JSON.stringify(page)).not.toContain("+5511999999999");

@@ -26,6 +26,9 @@ model User {
   posts            CommunityPost[]
   comments         CommunityComment[]
   welcomes         CommunityWelcome[]
+  conversationsA   Conversation[] @relation("ConversationParticipantA")
+  conversationsB   Conversation[] @relation("ConversationParticipantB")
+  sentMessages     ConversationMessage[]
 
   @@map("users")
 }
@@ -67,6 +70,37 @@ model CommunityWelcome {
 
   @@id([postId, userId])
   @@map("community_welcomes")
+}
+
+model Conversation {
+  id             String   @id @default(uuid()) @db.Uuid
+  pairKey        String   @unique @map("pair_key") @db.VarChar(73)
+  participantAId String   @db.Uuid @map("participant_a_id")
+  participantBId String   @db.Uuid @map("participant_b_id")
+  participantA   User     @relation("ConversationParticipantA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantB   User     @relation("ConversationParticipantB", fields: [participantBId], references: [id], onDelete: Cascade)
+  messages       ConversationMessage[]
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([participantAId, updatedAt(sort: Desc)])
+  @@index([participantBId, updatedAt(sort: Desc)])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String       @id @default(uuid()) @db.Uuid
+  conversationId String       @db.Uuid @map("conversation_id")
+  senderId       String       @db.Uuid @map("sender_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  text           String       @db.VarChar(2000)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  readAt         DateTime?    @map("read_at")
+
+  @@index([conversationId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([conversationId, senderId, readAt])
+  @@map("conversation_messages")
 }
 
 enum UserRole {

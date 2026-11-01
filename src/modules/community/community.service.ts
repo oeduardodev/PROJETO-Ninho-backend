@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { CommunityPost, Prisma, User } from "@prisma/client";
 import { PrismaService } from "../../infrastructure/database/prisma/prisma.service";
+import { getDefaultProfile } from "../users/domain/default-profile";
 import {
   CommentPageDto,
   CommentQueryDto,
@@ -292,12 +293,12 @@ export class CommunityService {
   }
 
   private toAuthor(user: Author): CommunityAuthorDto {
-    const suffix = user.id.replace(/-/g, "").slice(0, 8);
+    const fallback = getDefaultProfile(user.id);
     return {
       id: user.id,
-      name: user.communityName ?? `Pessoa ${suffix}`,
-      handle: `@${user.communityHandle ?? `pessoa_${suffix}`}`,
-      avatarEmoji: user.avatarEmoji ?? "🙂",
+      name: user.communityName ?? fallback.name,
+      handle: `@${user.communityHandle ?? fallback.handle}`,
+      avatarEmoji: user.avatarEmoji ?? (user.communityName ? "🙂" : ""),
       avatarBg: user.avatarBg ?? "#E8F0E6",
     };
   }
