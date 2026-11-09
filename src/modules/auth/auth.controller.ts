@@ -19,15 +19,25 @@ import { Throttle } from "@nestjs/throttler";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import { AuthService } from "./auth.service";
+import { PasswordResetService } from "./password-reset.service";
 import { AuthResponseDto, AuthUserDto } from "./dto/auth-response.dto";
 import { LoginDto } from "./dto/login.dto";
+import {
+  ForgotPasswordDto,
+  PasswordResetCompletedDto,
+  PasswordResetRequestedDto,
+  ResetPasswordDto,
+} from "./dto/password-reset.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { RegisterDto } from "./dto/register.dto";
 
 @ApiTags("Authentication")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly passwordResetService: PasswordResetService,
+  ) {}
 
   @Post("register")
   @Public()
@@ -52,10 +62,38 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 20, ttl: 60 * 1000 } })
-  @ApiOperation({ summary: "Renovar os tokens da sessão" })
+  @ApiOperation({ summary: "Renovar os tokens da sessǜo" })
   @ApiOkResponse({ type: AuthResponseDto })
   refresh(@Body() input: RefreshTokenDto): Promise<AuthResponseDto> {
     return this.authService.refresh(input.refreshToken);
+  }
+
+  @Post("password/forgot")
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60 * 60 * 1000 } })
+  @ApiOperation({
+    summary: "Solicitar código de recuperação de senha",
+    description:
+      "Envia um código de 6 dígitos para o e-mail cadastrado. A resposta é genérica para não revelar se o e-mail existe.",
+  })
+  @ApiOkResponse({ type: PasswordResetRequestedDto })
+  forgotPassword(
+    @Body() input: ForgotPasswordDto,
+  ): Promise<PasswordResetRequestedDto> {
+    return this.passwordResetService.requestCode(input.email);
+  }
+
+  @Post("password/reset")
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60 * 60 * 1000 } })
+  @ApiOperation({ summary: "Redefinir a senha com o código recebido" })
+  @ApiOkResponse({ type: PasswordResetCompletedDto })
+  resetPassword(
+    @Body() input: ResetPasswordDto,
+  ): Promise<PasswordResetCompletedDto> {
+    return this.passwordResetService.resetPassword(input);
   }
 
   @Post("logout")

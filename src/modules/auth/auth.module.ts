@@ -1,11 +1,14 @@
 import { Module } from "@nestjs/common";
 
+import { MailModule } from "../../infrastructure/mail/mail.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { PasswordResetService } from "./password-reset.service";
 
 @Module({
+  imports: [MailModule],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, PasswordResetService],
   exports: [AuthService],
 })
 export class AuthModule {}
