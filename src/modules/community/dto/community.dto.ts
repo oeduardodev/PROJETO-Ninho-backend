@@ -68,6 +68,24 @@ export class CreatePostDto {
   tag?: string;
 }
 
+export class UpdatePostDto {
+  @ApiPropertyOptional({ example: "Hoje consegui sair para caminhar." })
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MinLength(1)
+  @MaxLength(2000)
+  text?: string;
+
+  @ApiPropertyOptional({ example: "Conquista" })
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MinLength(1)
+  @MaxLength(32)
+  tag?: string;
+}
+
 export class CreateCommentDto {
   @ApiProperty({ example: "Cada passo conta!" })
   @Transform(trim)

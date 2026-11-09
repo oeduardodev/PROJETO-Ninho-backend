@@ -20,6 +20,7 @@ import {
   PostPageDto,
   PostQueryDto,
   UpdateCommunityProfileDto,
+  UpdatePostDto,
 } from "./dto/community.dto";
 
 const authorSelect = {
@@ -143,6 +144,36 @@ export class CommunityService {
       include: this.postInclude(userId),
     });
     return this.toPost(post);
+  }
+
+  async updatePost(
+    userId: string,
+    postId: string,
+    input: UpdatePostDto,
+  ): Promise<CommunityPostDto> {
+    await this.ensureActive(userId);
+    if (input.text === undefined && input.tag === undefined) {
+      throw new BadRequestException({
+        code: "EMPTY_UPDATE",
+        message: "Informe o texto ou a categoria a atualizar",
+      });
+    }
+    const post = await this.ensurePost(postId);
+    if (post.authorId !== userId) {
+      throw new ForbiddenException({
+        code: "NOT_POST_AUTHOR",
+        message: "Você só pode editar suas publicações",
+      });
+    }
+    const updated = await this.prisma.communityPost.update({
+      where: { id: postId },
+      data: {
+        ...(input.text !== undefined ? { text: input.text } : {}),
+        ...(input.tag !== undefined ? { tag: input.tag } : {}),
+      },
+      include: this.postInclude(userId),
+    });
+    return this.toPost(updated);
   }
 
   async deletePost(userId: string, postId: string): Promise<void> {

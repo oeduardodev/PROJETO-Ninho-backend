@@ -35,6 +35,7 @@ import {
   PostPageDto,
   PostQueryDto,
   UpdateCommunityProfileDto,
+  UpdatePostDto,
 } from "./dto/community.dto";
 
 @ApiTags("Community")
@@ -93,6 +94,17 @@ export class CommunityController {
     @Param("postId", ParseUUIDPipe) postId: string,
   ): Promise<CommunityPostDto> {
     return this.community.getPost(userId, postId);
+  }
+
+  @Patch("posts/:postId")
+  @ApiOperation({ summary: "Editar minha publicação" })
+  @ApiOkResponse({ type: CommunityPostDto })
+  updatePost(
+    @CurrentUser("sub") userId: string,
+    @Param("postId", ParseUUIDPipe) postId: string,
+    @Body() input: UpdatePostDto,
+  ): Promise<CommunityPostDto> {
+    return this.community.updatePost(userId, postId, input);
   }
 
   @Delete("posts/:postId")
