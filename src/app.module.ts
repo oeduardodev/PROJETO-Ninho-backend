@@ -16,6 +16,7 @@ import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CommunityModule } from "./modules/community/community.module";
 import { ConversationsModule } from "./modules/conversations/conversations.module";
+import { ReportsModule } from "./modules/reports/reports.module";
 import { AppController } from "./app.controller";
 
 @Module({
@@ -39,6 +40,7 @@ import { AppController } from "./app.controller";
     AuthModule,
     CommunityModule,
     ConversationsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [

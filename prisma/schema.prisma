@@ -30,6 +30,7 @@ model User {
   conversationsB   Conversation[] @relation("ConversationParticipantB")
   sentMessages     ConversationMessage[]
   passwordResets   PasswordResetCode[]
+  reports          Report[]
 
   @@map("users")
 }
@@ -115,6 +116,37 @@ model ConversationMessage {
   @@index([conversationId, createdAt(sort: Desc), id(sort: Desc)])
   @@index([conversationId, senderId, readAt])
   @@map("conversation_messages")
+}
+
+model Report {
+  id          String         @id @default(uuid()) @db.Uuid
+  reporterId  String         @db.Uuid @map("reporter_id")
+  reporter    User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  category    ReportCategory
+  description String         @db.VarChar(2000)
+  targetType  String?        @db.VarChar(32) @map("target_type")
+  targetId    String?        @db.VarChar(64) @map("target_id")
+  imageUrl    String?        @db.VarChar(500) @map("image_url")
+  status      ReportStatus   @default(PENDING)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  @@index([reporterId, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("reports")
+}
+
+enum ReportCategory {
+  CONTENT
+  USER
+  APP_ERROR
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  DISMISSED
 }
 
 enum UserRole {
