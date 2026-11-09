@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { CommunityPost, Prisma, User } from "@prisma/client";
 import { PrismaService } from "../../infrastructure/database/prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { getDefaultProfile } from "../users/domain/default-profile";
 import {
   CommentPageDto,
@@ -50,7 +51,10 @@ type CommentRecord = {
 
 @Injectable()
 export class CommunityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async getMyProfile(userId: string): Promise<CommunityAuthorDto> {
     await this.ensureActive(userId);
@@ -196,13 +200,25 @@ export class CommunityService {
     welcomed: boolean,
   ): Promise<CommunityWelcomeDto> {
     await this.ensureActive(userId);
-    await this.ensurePost(postId);
+    const post = await this.ensurePost(postId);
     if (welcomed) {
+      const existing = await this.prisma.communityWelcome.findUnique({
+        where: { postId_userId: { postId, userId } },
+        select: { userId: true },
+      });
       await this.prisma.communityWelcome.upsert({
         where: { postId_userId: { postId, userId } },
         update: {},
         create: { postId, userId },
       });
+      if (!existing) {
+        await this.notifications.notifyWelcome({
+          recipientId: post.authorId,
+          actorId: userId,
+          actorName: await this.resolveActorName(userId),
+          postId,
+        });
+      }
     } else {
       await this.prisma.communityWelcome.deleteMany({
         where: { postId, userId },
@@ -256,12 +272,27 @@ export class CommunityService {
     input: CreateCommentDto,
   ): Promise<CommunityCommentDto> {
     await this.ensureActive(userId);
-    await this.ensurePost(postId);
+    const post = await this.ensurePost(postId);
     const comment = await this.prisma.communityComment.create({
       data: { postId, authorId: userId, text: input.text },
       include: { author: { select: authorSelect } },
     });
+    await this.notifications.notifyComment({
+      recipientId: post.authorId,
+      actorId: userId,
+      actorName: await this.resolveActorName(userId),
+      postId,
+      commentId: comment.id,
+    });
     return this.toComment(comment);
+  }
+
+  private async resolveActorName(userId: string): Promise<string> {
+    const actor = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { communityName: true },
+    });
+    return actor?.communityName ?? getDefaultProfile(userId).name;
   }
 
   async deleteComment(

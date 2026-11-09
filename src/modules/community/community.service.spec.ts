@@ -15,17 +15,26 @@ describe("CommunityService", () => {
       deleteMany: jest.fn(),
     },
     communityWelcome: {
+      findUnique: jest.fn(),
       upsert: jest.fn(),
       deleteMany: jest.fn(),
       count: jest.fn(),
     },
+  };
+  const notifications = {
+    notifyWelcome: jest.fn(),
+    notifyComment: jest.fn(),
   };
   let service: CommunityService;
 
   beforeEach(() => {
     jest.resetAllMocks();
     prisma.user.findUnique.mockResolvedValue({ isActive: true });
-    service = new CommunityService(prisma as unknown as PrismaService);
+    prisma.communityWelcome.findUnique.mockResolvedValue(null);
+    service = new CommunityService(
+      prisma as unknown as PrismaService,
+      notifications as never,
+    );
   });
 
   it("não expõe e-mail ou telefone no feed e retorna contagens reais", async () => {
